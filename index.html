@@ -3,49 +3,284 @@
 <head>
   <meta charset="UTF-8" />
   <title>Chatbot – ASGARD</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f4f5fb;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
 
-  <!-- Estilos del widget de n8n -->
-  <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+    #chat-widget {
+      width: 360px;
+      max-height: 560px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #chat-header {
+      padding: 12px 16px;
+      background: #111827;
+      color: #f9fafb;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    #chat-header h1 {
+      font-size: 16px;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #chat-header small {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    #chat-messages {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto;
+      background: #f9fafb;
+    }
+
+    .msg {
+      max-width: 80%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      margin-bottom: 6px;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+
+    .msg.user {
+      margin-left: auto;
+      background: #dbeafe;
+    }
+
+    .msg.bot {
+      margin-right: auto;
+      background: #ffffff;
+    }
+
+    .msg.meta {
+      margin: 6px auto;
+      background: transparent;
+      color: #6b7280;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    #chat-form {
+      border-top: 1px solid #e5e7eb;
+      padding: 8px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    #chat-bottom-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    #chat-input {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      padding: 6px 10px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    #chat-input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px rgba(37,99,235,0.3);
+    }
+
+    #chat-send {
+      border-radius: 999px;
+      border: none;
+      padding: 6px 12px;
+      font-size: 14px;
+      background: #2563eb;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    #chat-send:disabled {
+      background: #9ca3af;
+      cursor: default;
+    }
+
+    #chat-file-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12px;
+      color: #4b5563;
+    }
+
+    #chat-file-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      color: #2563eb;
+    }
+
+    #chat-file {
+      display: none;
+    }
+
+    #chat-file-name {
+      flex: 1;
+      font-size: 11px;
+      color: #6b7280;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: right;
+    }
+  </style>
 </head>
 <body>
-  <!-- Contenedor del chat (para target: '#n8n-chat') -->
-  <div id="n8n-chat"></div>
+  <div id="chat-widget">
+    <div id="chat-header">
+      <h1>Hola! 👋 <span>Asgard Support Bot</span></h1>
+      <small>Inicia la conversación. Estoy para ayudarte 24/7.</small>
+    </div>
 
-  <!-- Script como módulo que importa createChat desde el CDN -->
-  <script type="module">
-    import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+    <div id="chat-messages"></div>
 
-    createChat({
-      webhookUrl: 'https://n8n.kpogroup.bo/webhook/612054b9-1ec1-4d0a-8444-8f588267ae12/chat', // ← pon aquí tu URL real
-      webhookConfig: {
-        method: 'POST',
-        headers: {}
-      },
-      target: '#n8n-chat',
-      mode: 'window',
-      chatInputKey: 'chatInput',
-      chatSessionKey: 'sessionId',
-      loadPreviousSession: true,
-      metadata: {},
-      showWelcomeScreen: false,
-      defaultLanguage: 'en',
-      initialMessages: [
-        'Hola! 👋',
-        'Mi nombre es KPO_Bot. ¿Cómo puedo ayudarte?'
-      ],
-      i18n: {
-        en: {
-          title: 'Hola! 👋',
-          subtitle: "Inicia la conversación. Estoy para ayudarte 24/7.",
-          footer: '',
-          getStarted: 'Nueva conversación',
-          inputPlaceholder: 'Escribe tu pregunta...',
-        },
-      },
-      enableStreaming: false,
+    <form id="chat-form">
+      <div id="chat-file-row">
+        <label id="chat-file-label">
+          📎 Adjuntar archivo
+          <input type="file" id="chat-file" multiple />
+        </label>
+        <div id="chat-file-name"></div>
+      </div>
+
+      <div id="chat-bottom-row">
+        <input
+          type="text"
+          id="chat-input"
+          placeholder="Escribe tu mensaje..."
+          autocomplete="off"
+          required
+        />
+        <button id="chat-send" type="submit">Enviar</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // 👉 Ajusta esta URL al webhook de tu nuevo workflow de n8n
+    const API_URL = 'https://TU_N8N_URL/webhook/chat-pro-asgard';
+
+    // Reutilizamos un sessionId como hacía el widget de n8n
+    let sessionId = localStorage.getItem('asgardSessionId');
+    if (!sessionId) {
+      sessionId = self.crypto?.randomUUID
+        ? crypto.randomUUID()
+        : Math.random().toString(36).slice(2);
+      localStorage.setItem('asgardSessionId', sessionId);
+    }
+
+    const chatMessages = document.getElementById('chat-messages');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const chatFile = document.getElementById('chat-file');
+    const chatFileName = document.getElementById('chat-file-name');
+    const chatSend = document.getElementById('chat-send');
+
+    function addMessage(who, text) {
+      const div = document.createElement('div');
+      div.className =
+        who === 'user' ? 'msg user' :
+        who === 'bot'  ? 'msg bot'  :
+                         'msg meta';
+      div.textContent = text;
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Mensaje inicial (opcional)
+    addMessage('bot', 'Hola! 👋 Soy KPO_Bot. ¿Cómo puedo ayudarte?');
+
+    chatFile.addEventListener('change', () => {
+      if (!chatFile.files.length) {
+        chatFileName.textContent = '';
+        return;
+      }
+      if (chatFile.files.length === 1) {
+        chatFileName.textContent = chatFile.files[0].name;
+      } else {
+        chatFileName.textContent = chatFile.files.length + ' archivos seleccionados';
+      }
+    });
+
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const message = chatInput.value.trim();
+      const hasFiles = chatFile.files.length > 0;
+
+      if (!message && !hasFiles) return;
+
+      addMessage('user', message || '[Archivo(s) enviado(s)]');
+      chatInput.value = '';
+
+      const formData = new FormData();
+      formData.append('message', message);
+      formData.append('sessionId', sessionId);
+
+      for (const file of chatFile.files) {
+        formData.append('file', file); // n8n lo verá como binary.file
+      }
+      chatFile.value = '';
+      chatFileName.textContent = '';
+
+      chatSend.disabled = true;
+
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!res.ok) {
+          addMessage('bot', 'Hubo un problema al procesar tu mensaje.');
+          return;
+        }
+
+        const data = await res.json();
+        let reply = data.reply || 'He procesado tu mensaje.';
+
+        if (data.ticketId) {
+          reply += ` Tu número de ticket es ${data.ticketId}.`;
+        }
+
+        addMessage('bot', reply);
+      } catch (err) {
+        console.error(err);
+        addMessage('bot', 'Error de conexión con el servidor.');
+      } finally {
+        chatSend.disabled = false;
+      }
     });
   </script>
 </body>
 </html>
-
-
