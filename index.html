@@ -188,8 +188,9 @@
 
   <script>
     // 👉 Ajusta esta URL al webhook de tu nuevo workflow de n8n
-    const API_URL = 'https://n8n.kpogroup.bo/webhook-test/asgard-chatbot';
-
+    //const API_URL = 'https://n8n.kpogroup.bo/webhook-test/asgard-chatbot';
+    const API_URL = 'https://n8n.kpogroup.bo/webhook/asgard-chatbot';
+    
     // Reutilizamos un sessionId como hacía el widget de n8n
     let sessionId = localStorage.getItem('asgardSessionId');
     if (!sessionId) {
@@ -284,5 +285,6 @@
   </script>
 </body>
 </html>
+
 
 
