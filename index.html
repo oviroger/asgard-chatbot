@@ -7,21 +7,49 @@
     body {
       font-family: system-ui, sans-serif;
       background: #f4f5fb;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       min-height: 100vh;
+      margin: 0;
     }
 
+    /* Burbuja flotante */
+    #chat-bubble {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #2563eb;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      cursor: pointer;
+      z-index: 9999;
+      font-size: 26px;
+    }
+
+    #chat-bubble span {
+      line-height: 1;
+    }
+
+    /* Contenedor del widget de chat (flotante) */
     #chat-widget {
+      position: fixed;
+      bottom: 90px; /* un poco por encima de la burbuja */
+      right: 20px;
       width: 360px;
       max-height: 560px;
       border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
       background: #fff;
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      z-index: 9998;
+      /* Oculto por defecto */
+      display: none;
     }
 
     #chat-header {
@@ -153,9 +181,23 @@
       text-overflow: ellipsis;
       text-align: right;
     }
+
+    /* Pequeña mejora móvil */
+    @media (max-width: 480px) {
+      #chat-widget {
+        width: calc(100% - 40px);
+        right: 20px;
+      }
+    }
   </style>
 </head>
 <body>
+  <!-- Burbuja flotante -->
+  <div id="chat-bubble" aria-label="Abrir chat de soporte">
+    <span>💬</span>
+  </div>
+
+  <!-- Widget de chat flotante -->
   <div id="chat-widget">
     <div id="chat-header">
       <h1>Hola! 👋 <span>Asgard Support Bot</span></h1>
@@ -198,6 +240,8 @@
       localStorage.setItem('asgardSessionId', sessionId);
     }
 
+    const chatWidget = document.getElementById('chat-widget');
+    const chatBubble = document.getElementById('chat-bubble');
     const chatMessages = document.getElementById('chat-messages');
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
@@ -216,8 +260,21 @@
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    // Mensaje inicial (opcional)
-    addMessage('bot', 'Hola! 👋 Soy KPO_Bot. ¿Cómo puedo ayudarte?');
+    // Mostrar/ocultar chat al hacer clic en la burbuja
+    chatBubble.addEventListener('click', () => {
+      const isVisible = chatWidget.style.display === 'flex';
+      if (isVisible) {
+        chatWidget.style.display = 'none';
+      } else {
+        chatWidget.style.display = 'flex';
+        chatInput.focus();
+        // Si es la primera vez que se abre, podemos mostrar el mensaje inicial
+        if (!chatMessages.dataset.initialized) {
+          addMessage('bot', 'Hola! 👋 Soy KPO_Bot. ¿Cómo puedo ayudarte?');
+          chatMessages.dataset.initialized = 'true';
+        }
+      }
+    });
 
     chatFile.addEventListener('change', () => {
       if (!chatFile.files.length) {
@@ -240,7 +297,6 @@
       // Solo bloquear si no hay ni texto ni archivo
       if (!message && !hasFiles) return;
 
-      // Lo que se ve en el chat del usuario
       const userBubbleText =
         message || (hasFiles ? '[Archivo(s) enviado(s)]' : '');
       addMessage('user', userBubbleText);
