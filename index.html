@@ -270,7 +270,10 @@
         chatInput.focus();
         // Si es la primera vez que se abre, podemos mostrar el mensaje inicial
         if (!chatMessages.dataset.initialized) {
-          addMessage('bot', 'Hola! 👋 Soy KPO_Bot. ¿Cómo puedo ayudarte?');
+          addMessage(
+            'bot',
+            'Hola, soy KPO_Bot, un asistente de IA de KPOGROUP. Puedo ayudarte a encontrar información sobre Asgard (Inventory y Warehouse) y también crear tickets de soporte cuando lo necesites.'
+          );
           chatMessages.dataset.initialized = 'true';
         }
       }
@@ -344,3 +347,4 @@
   </script>
 </body>
 </html>
+
