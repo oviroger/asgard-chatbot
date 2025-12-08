@@ -2,56 +2,29 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Chatbot – ASGARD</title>
+  <title>Ask Asgard – KPOGROUP</title>
   <style>
     body {
       font-family: system-ui, sans-serif;
       background: #f4f5fb;
-      min-height: 100vh;
-      margin: 0;
-    }
-
-    /* Burbuja flotante */
-    #chat-bubble {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: #2563eb;
-      color: #fff;
       display: flex;
-      align-items: center;
       justify-content: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-      cursor: pointer;
-      z-index: 9999;
-      font-size: 26px;
+      align-items: center;
+      min-height: 100vh;
     }
 
-    #chat-bubble span {
-      line-height: 1;
-    }
-
-    /* Contenedor del widget de chat (flotante) */
     #chat-widget {
-      position: fixed;
-      bottom: 90px; /* un poco por encima de la burbuja */
-      right: 20px;
       width: 360px;
       max-height: 560px;
       border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
       background: #fff;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      z-index: 9998;
-      /* Oculto por defecto */
-      display: none;
     }
 
+    /* Header estilo Azure */
     #chat-header {
       padding: 12px 16px;
       background: #111827;
@@ -64,14 +37,11 @@
     #chat-header h1 {
       font-size: 16px;
       margin: 0;
-      display: flex;
-      align-items: center;
-      gap: 6px;
     }
 
     #chat-header small {
       font-size: 12px;
-      opacity: 0.8;
+      opacity: 0.85;
     }
 
     #chat-messages {
@@ -110,7 +80,6 @@
 
     #chat-form {
       border-top: 1px solid #e5e7eb;
-      padding: 8px;
       background: #fff;
       display: flex;
       flex-direction: column;
@@ -120,6 +89,7 @@
     #chat-bottom-row {
       display: flex;
       gap: 6px;
+      padding: 8px;
     }
 
     #chat-input {
@@ -158,6 +128,7 @@
       gap: 8px;
       font-size: 12px;
       color: #4b5563;
+      padding: 6px 8px 0 8px;
     }
 
     #chat-file-label {
@@ -182,26 +153,23 @@
       text-align: right;
     }
 
-    /* Pequeña mejora móvil */
-    @media (max-width: 480px) {
-      #chat-widget {
-        width: calc(100% - 40px);
-        right: 20px;
-      }
+    /* Aviso tipo Azure */
+    #chat-disclaimer {
+      font-size: 11px;
+      color: #6b7280;
+      text-align: center;
+      padding: 4px 8px;
+      border-top: 1px solid #e5e7eb;
+      border-bottom: 1px solid #e5e7eb;
+      background: #f9fafb;
     }
   </style>
 </head>
 <body>
-  <!-- Burbuja flotante -->
-  <div id="chat-bubble" aria-label="Abrir chat de soporte">
-    <span>💬</span>
-  </div>
-
-  <!-- Widget de chat flotante -->
   <div id="chat-widget">
     <div id="chat-header">
-      <h1>Hola! 👋 <span>Asgard Support Bot</span></h1>
-      <small>Inicia la conversación. Estoy para ayudarte 24/7.</small>
+      <h1>Ask Asgard 🤖</h1>
+      <small>Asistente de IA de KPOGROUP para consultas y tickets de Asgard.</small>
     </div>
 
     <div id="chat-messages"></div>
@@ -215,11 +183,15 @@
         <div id="chat-file-name"></div>
       </div>
 
+      <div id="chat-disclaimer">
+        Respuestas generadas por IA. La información puede no ser completamente precisa.
+      </div>
+
       <div id="chat-bottom-row">
         <input
           type="text"
           id="chat-input"
-          placeholder="Escribe tu mensaje..."
+          placeholder="Pregunta sobre Asgard o solicita crear un ticket…"
           autocomplete="off"
         />
         <button id="chat-send" type="submit">Enviar</button>
@@ -228,10 +200,11 @@
   </div>
 
   <script>
-    // 👉 Ajusta esta URL al webhook de tu workflow de n8n
+    // URL del webhook de n8n
+    // const API_URL = 'https://n8n.kpogroup.bo/webhook-test/asgard-chatbot';
     const API_URL = 'https://n8n.kpogroup.bo/webhook/asgard-chatbot';
-    
-    // Reutilizamos un sessionId como hacía el widget de n8n
+
+    // Reutilizamos un sessionId
     let sessionId = localStorage.getItem('asgardSessionId');
     if (!sessionId) {
       sessionId = self.crypto?.randomUUID
@@ -240,8 +213,6 @@
       localStorage.setItem('asgardSessionId', sessionId);
     }
 
-    const chatWidget = document.getElementById('chat-widget');
-    const chatBubble = document.getElementById('chat-bubble');
     const chatMessages = document.getElementById('chat-messages');
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
@@ -260,21 +231,12 @@
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    // Mostrar/ocultar chat al hacer clic en la burbuja
-    chatBubble.addEventListener('click', () => {
-      const isVisible = chatWidget.style.display === 'flex';
-      if (isVisible) {
-        chatWidget.style.display = 'none';
-      } else {
-        chatWidget.style.display = 'flex';
-        chatInput.focus();
-        // Si es la primera vez que se abre, podemos mostrar el mensaje inicial
-        if (!chatMessages.dataset.initialized) {
-          addMessage('bot', 'Hola! 👋 Soy KPO_Bot. ¿Cómo puedo ayudarte?');
-          chatMessages.dataset.initialized = 'true';
-        }
-      }
-    });
+    // Mensaje inicial tipo Azure
+    addMessage(
+      'bot',
+      'Hola, soy KPO_Bot, el asistente de IA de KPOGROUP para Asgard Inventory y Warehouse. ' +
+      'Puedo ayudarte con preguntas frecuentes, guías de uso y, si lo necesitas, crear tickets de soporte.'
+    );
 
     chatFile.addEventListener('change', () => {
       if (!chatFile.files.length) {
@@ -294,21 +256,20 @@
       const message = chatInput.value.trim();
       const hasFiles = chatFile.files.length > 0;
 
-      // Solo bloquear si no hay ni texto ni archivo
+      // Permitimos enviar solo archivo, solo texto o ambos
       if (!message && !hasFiles) return;
 
-      const userBubbleText =
-        message || (hasFiles ? '[Archivo(s) enviado(s)]' : '');
-      addMessage('user', userBubbleText);
-
+      const userLabel = message || '[Archivo(s) enviado(s)]';
+      addMessage('user', userLabel);
       chatInput.value = '';
 
       const formData = new FormData();
-      formData.append('message', message || '');
+      formData.append('message', message);
       formData.append('sessionId', sessionId);
 
       for (const file of chatFile.files) {
-        formData.append('file', file); // n8n lo verá como binary.file
+        // n8n lo verá como binary.file
+        formData.append('file', file);
       }
       chatFile.value = '';
       chatFileName.textContent = '';
