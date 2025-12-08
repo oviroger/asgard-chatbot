@@ -179,7 +179,6 @@
           id="chat-input"
           placeholder="Escribe tu mensaje..."
           autocomplete="off"
-          required
         />
         <button id="chat-send" type="submit">Enviar</button>
       </div>
@@ -187,8 +186,7 @@
   </div>
 
   <script>
-    // 👉 Ajusta esta URL al webhook de tu nuevo workflow de n8n
-    //const API_URL = 'https://n8n.kpogroup.bo/webhook-test/asgard-chatbot';
+    // 👉 Ajusta esta URL al webhook de tu workflow de n8n
     const API_URL = 'https://n8n.kpogroup.bo/webhook/asgard-chatbot';
     
     // Reutilizamos un sessionId como hacía el widget de n8n
@@ -239,13 +237,18 @@
       const message = chatInput.value.trim();
       const hasFiles = chatFile.files.length > 0;
 
+      // Solo bloquear si no hay ni texto ni archivo
       if (!message && !hasFiles) return;
 
-      addMessage('user', message || '[Archivo(s) enviado(s)]');
+      // Lo que se ve en el chat del usuario
+      const userBubbleText =
+        message || (hasFiles ? '[Archivo(s) enviado(s)]' : '');
+      addMessage('user', userBubbleText);
+
       chatInput.value = '';
 
       const formData = new FormData();
-      formData.append('message', message);
+      formData.append('message', message || '');
       formData.append('sessionId', sessionId);
 
       for (const file of chatFile.files) {
@@ -285,8 +288,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
