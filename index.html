@@ -249,13 +249,35 @@
     const chatFileName = document.getElementById('chat-file-name');
     const chatSend = document.getElementById('chat-send');
 
+
+    function formatBotText(text) {
+      let t = text || '';
+      
+      // Escapar HTML básico
+      t = t
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      // **negrita** -> <strong>negrita</strong>
+      t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      // "- algo" al inicio de línea -> "• algo"
+      t = t.replace(/^-\s+/gm, '• ');
+      return t;
+    } 
+    
     function addMessage(who, text) {
       const div = document.createElement('div');
       div.className =
         who === 'user' ? 'msg user' :
         who === 'bot'  ? 'msg bot'  :
-                         'msg meta';
-      div.textContent = text;
+        'msg meta';
+      if (who === 'bot') {
+        // Interpretar Markdown sencillo del modelo
+        div.innerHTML = formatBotText(text);
+      } else {
+        // Usuario y mensajes meta como texto plano
+        div.textContent = text;
+      }
       chatMessages.appendChild(div);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
@@ -347,4 +369,5 @@
   </script>
 </body>
 </html>
+
 
