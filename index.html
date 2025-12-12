@@ -322,14 +322,24 @@
       // Solo bloquear si no hay ni texto ni archivo
       if (!message && !hasFiles) return;
 
+     // Mensaje que verá el servidor (n8n / modelo).
+      // Nunca irá vacío si hay archivo adjunto.
+      const payloadMessage =
+        message ||
+        (hasFiles
+          ? 'Envío un archivo adjunto relacionado con el problema.'
+          : '');
+      
+      // Mensaje que verá el usuario en la burbuja del chat
       const userBubbleText =
         message || (hasFiles ? '[Archivo(s) enviado(s)]' : '');
+      
       addMessage('user', userBubbleText);
-
+      
       chatInput.value = '';
-
+      
       const formData = new FormData();
-      formData.append('message', message || '');
+      formData.append('message', payloadMessage);
       formData.append('sessionId', sessionId);
 
       for (const file of chatFile.files) {
@@ -369,5 +379,6 @@
   </script>
 </body>
 </html>
+
 
 
